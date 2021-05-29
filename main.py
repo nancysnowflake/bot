@@ -1,36 +1,78 @@
-#!/usr/bin/env python
+from telegram import Update
+from telegram.ext import Updater, CallbackQueryHandler, CommandHandler, MessageHandler, Filters, CallbackContext
+import menu
+import database
+import constants
 
-from telegram import Update, ForceReply
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
 def start(update: Update, _: CallbackContext) -> None:
-    """Send a message when the command /start is issued."""
     user = update.effective_user
-    update.message.reply_markdown_v2(
-        fr'Hi {user.mention_markdown_v2()}\!',
-        reply_markup=ForceReply(selective=True),
+    user_data = database.get_user(user.id)
+    if user_data is None:
+        database.insert(user.id, user.name)
+
+    lang_buttons = menu.languages()
+
+    update.message.reply_text(
+        fr'Привет {user.name}! Выбери язык',
+        reply_markup=lang_buttons
     )
 
 
-def help_command(update: Update, _: CallbackContext) -> None:
-    """Send a message when the command /help is issued."""
+def lang_command(update: Update, _: CallbackContext) -> None:
     update.message.reply_text('Help!')
 
+def lang_button(update: Update, _: CallbackContext) -> None:
+    query = update.callback_query
 
-def echo(update: Update, _: CallbackContext) -> None:
-    """Echo the user message."""
-    update.message.reply_text(update.message.text)
+    query.answer()
+
+    if query.data == 'lang_ru':
+        database.update_lang(update.effective_user.id, 'ru')
+        markup = menu.zodiac_signs('ru')
+        query.message.reply_markdown_v2(text='Знаки зодиака', reply_markup=markup)
+    elif query.data == 'lang_en':
+        database.update_lang(update.effective_user.id, 'en')
+        markup = menu.zodiac_signs('en')
+        query.message.reply_markdown_v2(text='Zodiac signs', reply_markup=markup)
+
+
+def text_handler(update: Update, _: CallbackContext) -> None:
+    if update.message.text == 'Сменить язык':
+        lang_buttons = menu.languages()
+        update.message.reply_text(
+            'Выбери язык',
+            reply_markup=lang_buttons
+        )
+    elif update.message.text == 'Change language':
+        lang_buttons = menu.languages()
+        update.message.reply_text(
+            'Choose language',
+            reply_markup=lang_buttons
+        )
+    else:
+        selected_zodiac = update.message.text
+        user = database.get_user(update.effective_user.id)
+        lang = user[2]
+        for zodiac in constants.ZODIAC:
+            if zodiac[lang]['name'] == selected_zodiac:
+                update.message.reply_text(text=zodiac[lang]['descr'])
+                return
+
 
 
 def main() -> None:
-    updater = Updater("1744566346:AAHr3WVZKx-pDUjtG57Se5F-xBf6MifEd0E")
+    updater = Updater(constants.API_TOKEN)
 
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help_command))
+    # updater.dispatcher.add_handler(CallbackQueryHandler(lang_button))
+    dispatcher.add_handler(CommandHandler("language", lang_command))
 
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
+    dispatcher.add_handler((CallbackQueryHandler(callback=lang_button, pattern='lang_*')))
+
+    dispatcher.add_handler(MessageHandler(Filters.text, text_handler))
 
     updater.start_polling()
 
