@@ -3,6 +3,7 @@ from telegram.ext import Updater, CallbackQueryHandler, CommandHandler, MessageH
 import menu
 import database
 import constants
+from datetime import datetime
 
 
 def start(update: Update, _: CallbackContext) -> None:
@@ -18,9 +19,6 @@ def start(update: Update, _: CallbackContext) -> None:
         reply_markup=lang_buttons
     )
 
-
-def lang_command(update: Update, _: CallbackContext) -> None:
-    update.message.reply_text('Help!')
 
 def lang_button(update: Update, _: CallbackContext) -> None:
     query = update.callback_query
@@ -38,6 +36,8 @@ def lang_button(update: Update, _: CallbackContext) -> None:
 
 
 def text_handler(update: Update, _: CallbackContext) -> None:
+    database.update_last_usage(update.effective_user.id, datetime.now())
+
     if update.message.text == 'Сменить язык':
         lang_buttons = menu.languages()
         update.message.reply_text(
@@ -59,6 +59,8 @@ def text_handler(update: Update, _: CallbackContext) -> None:
                 update.message.reply_text(text=zodiac[lang]['descr'])
                 return
 
+        update.message.reply_text(text=constants.UNKNOWN_MESSAGE[lang])
+
 
 
 def main() -> None:
@@ -67,8 +69,6 @@ def main() -> None:
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler("start", start))
-    # updater.dispatcher.add_handler(CallbackQueryHandler(lang_button))
-    dispatcher.add_handler(CommandHandler("language", lang_command))
 
     dispatcher.add_handler((CallbackQueryHandler(callback=lang_button, pattern='lang_*')))
 

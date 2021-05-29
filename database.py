@@ -7,8 +7,14 @@ cursor.execute('''create table if not exists users
 (
 	telegram_id integer,
 	telegram_username string,
-	language string
+	language string,
+	last_usage string
 )''')
+
+
+def update_last_usage(telegram_id, date):
+    cursor.execute('''update users set last_usage = ? where telegram_id = ?''', (date,telegram_id,))
+    conn.commit()
 
 
 def update_lang(telegram_id, lang):

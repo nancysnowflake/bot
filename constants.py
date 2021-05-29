@@ -127,3 +127,8 @@ CHANGE_LANG = {
     'ru': 'Сменить язык',
     'en': 'Change language'
 }
+
+UNKNOWN_MESSAGE = {
+    'ru': 'Неизвестная команда',
+    'en': 'Unknown command'
+}
