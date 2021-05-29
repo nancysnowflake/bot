@@ -7,15 +7,14 @@ from datetime import datetime
 
 
 def start(update: Update, _: CallbackContext) -> None:
-    user = update.effective_user
-    user_data = database.get_user(user.id)
-    if user_data is None:
-        database.insert(user.id, user.name)
+    user = database.get_user(update.effective_user.id)
+    if user is None:
+        database.insert(update.effective_user.id, update.effective_user.name)
 
     lang_buttons = menu.languages()
 
     update.message.reply_text(
-        fr'Привет {user.name}! Выбери язык',
+        fr'Привет {update.effective_user.name}! Выбери язык',
         reply_markup=lang_buttons
     )
 

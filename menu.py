@@ -24,6 +24,7 @@ def zodiac_signs(lang):
         group.append(KeyboardButton(constants.ZODIAC[i][lang]['name']))
         i += 1
 
+    buttons.append(group)
     buttons.append([KeyboardButton(constants.CHANGE_LANG[lang])])
 
     return ReplyKeyboardMarkup(buttons)
