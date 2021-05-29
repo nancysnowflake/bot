@@ -128,7 +128,7 @@ CHANGE_LANG = {
     'en': 'Change language'
 }
 
-UNKNOWN_MESSAGE = {
+UNKNOWN_COMMAND = {
     'ru': 'Неизвестная команда',
     'en': 'Unknown command'
 }

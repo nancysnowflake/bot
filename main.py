@@ -6,7 +6,7 @@ import constants
 from datetime import datetime
 
 
-def start(update: Update, _: CallbackContext) -> None:
+def start_handler(update: Update, _: CallbackContext) -> None:
     user = database.get_user(update.effective_user.id)
     if user is None:
         database.insert(update.effective_user.id, update.effective_user.name)
@@ -19,7 +19,7 @@ def start(update: Update, _: CallbackContext) -> None:
     )
 
 
-def lang_button(update: Update, _: CallbackContext) -> None:
+def lang_handler(update: Update, _: CallbackContext) -> None:
     query = update.callback_query
 
     query.answer()
@@ -58,7 +58,7 @@ def text_handler(update: Update, _: CallbackContext) -> None:
                 update.message.reply_text(text=zodiac[lang]['descr'])
                 return
 
-        update.message.reply_text(text=constants.UNKNOWN_MESSAGE[lang])
+        update.message.reply_text(text=constants.UNKNOWN_COMMAND[lang])
 
 
 
@@ -67,9 +67,9 @@ def main() -> None:
 
     dispatcher = updater.dispatcher
 
-    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("start", start_handler))
 
-    dispatcher.add_handler((CallbackQueryHandler(callback=lang_button, pattern='lang_*')))
+    dispatcher.add_handler((CallbackQueryHandler(callback=lang_handler, pattern='lang_*')))
 
     dispatcher.add_handler(MessageHandler(Filters.text, text_handler))
 
